@@ -1,11 +1,9 @@
-require("Font7x11Numeric7Seg").add(Graphics);
-
 // Constants
 // Screen definition
 const Screen_Clock = 0;
 const Screen_Second = 1;
-const Screen_Three = 2;
-const Screen_Max = Screen_Three + 1;
+const Screen_Third = 2;
+const Screen_Max = Screen_Third + 1;
 
 // Screen resolution
 const Screen_Width = 240;
@@ -26,13 +24,13 @@ let _lastScreenChangeTime = getTime();
 // Button handlers
 setWatch(() => {
   _screen = (Screen_Max + _screen - 1) % Screen_Max;
-  buzz();
+  _lastScreenChangeTime = getTime();
   redraw();
 }, BTN4, {repeat:true});
 
 setWatch(() => {
   _screen = (_screen + 1) % Screen_Max;
-  buzz();
+  _lastScreenChangeTime = getTime();
   redraw();
 }, BTN5, {repeat:true});
 
@@ -52,6 +50,9 @@ function redraw() {
       drawClock();
       break;
   }
+
+  // Draw screen headings
+  drawHeading(time);
 
   // Draw widgets
   Bangle.drawWidgets();
@@ -75,10 +76,12 @@ function drawZealBackground(time, dt) {
   g.drawImage(require("Storage").read("cat_watch_zeal.img"),0,0);
 }
 
+// Draw the screen heading
 function drawHeading(time) {
-  // Draw page title if it's not been too long
-  if (time - _lastScreenChangeTime < 3000) {
-
+  // Draw screen heading for a few seconds after changing screens
+  if (time - _lastScreenChangeTime < 3) {
+    g.setFont("Vector",25);
+    g.drawString(getScreenHeading(),80,30);
   }
 }
 
@@ -93,9 +96,9 @@ function drawClock() {
 
   g.reset();
   g.setFont("Vector",35);
-  g.drawString(`${h}:${m<10?"0":""}${m}:${s<10?"0":""}${s}`, X, Y, false);
+  g.drawString(`${h}:${m<10?"0":""}${m}:${s<10?"0":""}${s}`, X, Y);
   g.setFont("Vector",20);
-  g.drawString(`${day} ${month} ${year}`, X+10, Y+40, false);
+  g.drawString(`${day} ${month} ${year}`, X+10, Y+40);
 }
 
 // Buzz if not already buzzing
@@ -108,14 +111,14 @@ function buzz() {
 }
 
 // Get the screen text
-function getScreenText() {
+function getScreenHeading() {
   switch (_screen) {
     case Screen_Clock:
       return "Clock";
     case Screen_Second:
       return "Second";
-    case Screen_Three:
-      return "Three";
+    case Screen_Third:
+      return "Third";
     default:
       return "unknown screen";
   }
